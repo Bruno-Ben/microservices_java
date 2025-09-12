@@ -3,7 +3,7 @@ package br.edu.atitus.greeting_service.configs;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@Component //Para a classe se tornar um bean do spring
+@Component
 @ConfigurationProperties(prefix = "greeting-service")
 public class GreetingConfig {
 	
