@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "greeting-service")
 public class GreetingConfig {
-	
+
 	private String greeting;
 	
 	private String defaultName;
@@ -26,6 +26,6 @@ public class GreetingConfig {
 	public void setDefaultName(String defaultName) {
 		this.defaultName = defaultName;
 	}
-
+	
 	
 }
