@@ -2,43 +2,57 @@ package br.edu.atitus.currency_service.controllers;
 
 import java.sql.Timestamp;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.atitus.currency_service.clients.CurrencyBCClient;
 import br.edu.atitus.currency_service.clients.CurrencyBCResponse;
 import br.edu.atitus.currency_service.clients.CurrencyBCResponse.CurrencyBC;
+import br.edu.atitus.currency_service.clients.CurrencyCacheShare;
 import br.edu.atitus.currency_service.entities.CurrencyEntity;
 import br.edu.atitus.currency_service.repositories.CurrencyRepository;
+import feign.Body;
 
 @RestController
 @RequestMapping("currency")
+@EnableAsync
 public class CurrencyController {
 	
 	private final CurrencyRepository repository;
 	private final CurrencyBCClient currencyBCClient;
 	private final CacheManager cacheManager;
+	private final CurrencyCacheShare currencyCacheShare;
 	
 	@Value("${server.port}")
 	private int serverPort;
+	
+	@Value("${instances.port}")
+	private List<Integer> instancesPort;
 
-	public CurrencyController(CurrencyRepository repository, CurrencyBCClient currencyBCClient, CacheManager cacheManager) {
+	public CurrencyController(CurrencyRepository repository, CurrencyBCClient currencyBCClient, CacheManager cacheManager, CurrencyCacheShare currencyCacheShare) {
 		super();
 		this.repository = repository;
 		this.currencyBCClient = currencyBCClient;
 		this.cacheManager = cacheManager;
+		this.currencyCacheShare = currencyCacheShare;
 	}
 	
+
 	@GetMapping("/{value}/{source}/{target}")
 	public ResponseEntity<CurrencyEntity> getConversion(
 			@PathVariable double value,
-			@PathVariable String source,
+			@PathVariable String source,	
 			@PathVariable String target) throws Exception{
 
 		source = source.toUpperCase();
@@ -51,6 +65,7 @@ public class CurrencyController {
 		
 		if (currency != null) {
 			dataSource = "Cache";
+
 		} else {
 			currency = new CurrencyEntity();
 			currency.setSource(source);
@@ -87,15 +102,38 @@ public class CurrencyController {
 				
 				
 			}
+			cacheManager.getCache(nameCache).put(keyCache, currency);
+			// Só salvar cache quando realmente buscar, essa chamada reseta o tempo de expiração desse cache
+			
+			final CurrencyEntity currencyFinal = currency;
+			//o método assíncrono abaixo pede o currency como variável final
+			new Thread(() -> {
+			    for (Integer port : instancesPort) {
+			        if (serverPort != port) {
+			            currencyCacheShare.storeCache(nameCache, keyCache, currencyFinal);
+			            // o Ideal seria fazer com RestTemplate e fazer nas portas corretas dos projetos, sem gateway
+			        }
+			    }
+			}).start();
 		}
 		
 		
-		cacheManager.getCache(nameCache).put(keyCache, currency);
+		
+		
 		currency.setConvertedValue(value * currency.getConversionRate());
 		currency.setEnviroment("Currency running in port: " + serverPort + " - DataSource: " + dataSource);
 
 		return ResponseEntity.ok(currency);
 		
+	}
+	
+	
+	@PostMapping("/{nameCache}/{keyCache}")
+	public void storeCache(
+			@PathVariable String nameCache,
+			@PathVariable String keyCache,
+			@RequestBody CurrencyEntity currency) {
+		cacheManager.getCache(nameCache).put(keyCache, currency);
 	}
 	
 	

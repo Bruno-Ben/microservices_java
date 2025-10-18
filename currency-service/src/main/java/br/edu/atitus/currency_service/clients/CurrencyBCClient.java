@@ -14,5 +14,4 @@ public interface CurrencyBCClient {
 	 CurrencyBCResponse getCurrency( @PathVariable String moeda);
 
 	
-	
 }
