@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import br.edu.atitus.currency_service.clients.CurrencyBCClient;
 import br.edu.atitus.currency_service.clients.CurrencyBCResponse;
@@ -108,9 +109,13 @@ public class CurrencyController {
 			new Thread(() -> {
 			    for (Integer port : instancesPort) {
 			        if (serverPort != port) {
-			            currencyCacheShare.storeCache(nameCache, keyCache, currencyFinal);
+			           // currencyCacheShare.storeCache(nameCache, keyCache, currencyFinal);
 			            // o Ideal seria fazer com RestTemplate e fazer nas portas diretas do projeto, sem gateway
 			            //Mas o OpenFeign é um pouco chato em relação a URLs dinâmicas
+			            
+			            RestTemplate restTemplate = new RestTemplate();
+			            String url = "http://localhost:" + port + "/currency/" + nameCache + "/" + keyCache;
+			            CurrencyBCResponse response = restTemplate.postForObject(url, currencyFinal, CurrencyBCResponse.class);
 			        }
 			    }
 			}).start();
