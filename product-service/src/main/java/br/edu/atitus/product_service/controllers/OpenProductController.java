@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import br.edu.atitus.product_service.clients.CurrencyClient;
 import br.edu.atitus.product_service.clients.CurrencyResponse;
 import br.edu.atitus.product_service.entities.ProductEntity;
@@ -48,7 +49,7 @@ public class OpenProductController {
 			product.setEnviroment(environment + " - Product Source: Cache");
 		}
 		
-		if (targetCurrency.equalsIgnoreCase(product.getCurrency()))	
+		if (targetCurrency.equalsIgnoreCase(product.getCurrency()))
 			product.setConvertedPrice(product.getPrice());
 		else {
 			try {

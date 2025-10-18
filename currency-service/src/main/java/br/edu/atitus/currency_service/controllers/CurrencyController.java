@@ -2,7 +2,6 @@ package br.edu.atitus.currency_service.controllers;
 
 import java.sql.Timestamp;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +21,6 @@ import br.edu.atitus.currency_service.clients.CurrencyBCResponse.CurrencyBC;
 import br.edu.atitus.currency_service.clients.CurrencyCacheShare;
 import br.edu.atitus.currency_service.entities.CurrencyEntity;
 import br.edu.atitus.currency_service.repositories.CurrencyRepository;
-import feign.Body;
 
 @RestController
 @RequestMapping("currency")
@@ -111,7 +109,8 @@ public class CurrencyController {
 			    for (Integer port : instancesPort) {
 			        if (serverPort != port) {
 			            currencyCacheShare.storeCache(nameCache, keyCache, currencyFinal);
-			            // o Ideal seria fazer com RestTemplate e fazer nas portas corretas dos projetos, sem gateway
+			            // o Ideal seria fazer com RestTemplate e fazer nas portas diretas do projeto, sem gateway
+			            //Mas o OpenFeign é um pouco chato em relação a URLs dinâmicas
 			        }
 			    }
 			}).start();
