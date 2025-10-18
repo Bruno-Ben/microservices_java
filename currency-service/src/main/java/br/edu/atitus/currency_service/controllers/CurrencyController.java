@@ -45,7 +45,7 @@ public class CurrencyController {
 		target = target.toUpperCase();
 		String dataSource = "None";
 		String nameCache = "Currency";
-		String keyCache = "source + target";
+		String keyCache = source + target;
 		
 		CurrencyEntity currency = cacheManager.getCache(nameCache).get(keyCache, CurrencyEntity.class);
 		
