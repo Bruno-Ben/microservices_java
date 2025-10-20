@@ -106,22 +106,22 @@ public class CurrencyController {
 			
 			final CurrencyEntity currencyFinal = currency;
 			//o método assíncrono abaixo pede o currency como variável final
-			new Thread(() -> {
+			new Thread(() -> { // Dividir o cache com todas as instâncias
 			    for (Integer port : instancesPort) {
 			        if (serverPort != port) {
+			        	
 			           // currencyCacheShare.storeCache(nameCache, keyCache, currencyFinal);
-			            // o Ideal seria fazer com RestTemplate e fazer nas portas diretas do projeto, sem gateway
-			            //Mas o OpenFeign é um pouco chato em relação a URLs dinâmicas
+			        	
+			            // o Ideal seria fazer com RestTemplate(abaixo) e fazer nas portas diretas do projeto, sem gateway
+			        	//A não ser que conseguisse fazer URI dinâmico no OpenFeign, mas o método abaixo é muito mais fácil
 			            
 			            RestTemplate restTemplate = new RestTemplate();
 			            String url = "http://localhost:" + port + "/currency/" + nameCache + "/" + keyCache;
-			            CurrencyBCResponse response = restTemplate.postForObject(url, currencyFinal, CurrencyBCResponse.class);
+			            restTemplate.postForObject(url, currencyFinal, CurrencyBCResponse.class);
 			        }
 			    }
 			}).start();
 		}
-		
-		
 		
 		
 		currency.setConvertedValue(value * currency.getConversionRate());

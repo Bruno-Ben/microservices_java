@@ -31,6 +31,9 @@ public class ApiGatewayConfig {
 				.route(p -> p
 						.path("/currency/**")
 						.uri("lb://currency-service"))
+				.route(p -> p
+						.path("/auth/**")
+						.uri("lb://auth-service"))
 				.build();
 	}
 
