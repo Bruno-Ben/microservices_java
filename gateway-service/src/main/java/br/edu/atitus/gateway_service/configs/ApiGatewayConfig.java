@@ -29,11 +29,20 @@ public class ApiGatewayConfig {
 						.path("/products/**")
 						.uri("lb://product-service"))
 				.route(p -> p
+						.path("/ws/products/**")
+						.uri("lb://product-service"))
+				.route(p -> p
 						.path("/currency/**")
 						.uri("lb://currency-service"))
 				.route(p -> p
 						.path("/auth/**")
 						.uri("lb://auth-service"))
+				.route(p -> p
+						.path("/ws/orders/**")
+						.uri("lb://order-service"))
+				.route(p -> p
+						.path("/greeting/**")
+						.uri("lb://greeting-service"))
 				.build();
 	}
 

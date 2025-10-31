@@ -23,9 +23,13 @@ public class ProductEntity {
 	@Column(length = 3)
 	private String currency;
 	private Integer stock;
+	@Column(name="image_url")
+	private String imageUrl;
 	
+	
+
 	@Transient
-	private String enviroment;
+	private String environment;
 	@Transient
 	private double convertedPrice;
 	
@@ -71,11 +75,11 @@ public class ProductEntity {
 	public void setStock(Integer stock) {
 		this.stock = stock;
 	}
-	public String getEnviroment() {
-		return enviroment;
+	public String getEnvironment() {
+		return environment;
 	}
-	public void setEnviroment(String enviroment) {
-		this.enviroment = enviroment;
+	public void setEnvironment(String enviroment) {
+		this.environment = enviroment;
 	}
 	public double getConvertedPrice() {
 		return convertedPrice;
@@ -83,8 +87,12 @@ public class ProductEntity {
 	public void setConvertedPrice(double convertedPrice) {
 		this.convertedPrice = convertedPrice;
 	}
-	
-	
+	public String getImageUrl() {
+		return imageUrl;
+	}
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
 	
 
 }

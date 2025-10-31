@@ -61,7 +61,7 @@ public class CurrencyEntity {
 	public String getEnviroment() {
 		return enviroment;
 	}
-	public void setEnviroment(String enviroment) {
+	public void setEnvironment(String enviroment) {
 		this.enviroment = enviroment;
 	}
 

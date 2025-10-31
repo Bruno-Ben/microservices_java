@@ -1,15 +1,15 @@
-package br.edu.atitus.product_service.clients;
+package br.edu.atitus.order_service.clients;
 
 public class CurrencyResponse {
-	
+
 	private Long id;
-	
+
 	private String source;
-	
+
 	private String target;
-	
+
 	private double conversionRate;
-	
+
 	private double convertedValue;
 	
 	private String enviroment;
@@ -54,14 +54,13 @@ public class CurrencyResponse {
 		this.convertedValue = convertedValue;
 	}
 
-	public String getEnvironment() {
+	public String getEnviroment() {
 		return enviroment;
 	}
 
 	public void setEnviroment(String enviroment) {
 		this.enviroment = enviroment;
 	}
-	
-	
 
+	
 }

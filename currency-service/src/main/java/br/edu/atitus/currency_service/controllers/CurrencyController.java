@@ -2,7 +2,6 @@ package br.edu.atitus.currency_service.controllers;
 
 import java.sql.Timestamp;
 import java.util.Comparator;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
@@ -14,12 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import br.edu.atitus.currency_service.clients.CurrencyBCClient;
 import br.edu.atitus.currency_service.clients.CurrencyBCResponse;
 import br.edu.atitus.currency_service.clients.CurrencyBCResponse.CurrencyBC;
-import br.edu.atitus.currency_service.clients.CurrencyCacheShare;
 import br.edu.atitus.currency_service.entities.CurrencyEntity;
 import br.edu.atitus.currency_service.repositories.CurrencyRepository;
 
@@ -31,20 +28,19 @@ public class CurrencyController {
 	private final CurrencyRepository repository;
 	private final CurrencyBCClient currencyBCClient;
 	private final CacheManager cacheManager;
-	private final CurrencyCacheShare currencyCacheShare;
 	
 	@Value("${server.port}")
 	private int serverPort;
 	
-	@Value("${instances.port}")
-	private List<Integer> instancesPort;
-
-	public CurrencyController(CurrencyRepository repository, CurrencyBCClient currencyBCClient, CacheManager cacheManager, CurrencyCacheShare currencyCacheShare) {
+	@Value("${HOSTNAME:}")
+	private String hostName;
+	
+	public CurrencyController(CurrencyRepository repository, CurrencyBCClient currencyBCClient, CacheManager cacheManager) {
 		super();
 		this.repository = repository;
 		this.currencyBCClient = currencyBCClient;
 		this.cacheManager = cacheManager;
-		this.currencyCacheShare = currencyCacheShare;
+
 	}
 	
 
@@ -105,27 +101,13 @@ public class CurrencyController {
 			// Só salvar cache quando realmente buscar, essa chamada reseta o tempo de expiração desse cache
 			
 			final CurrencyEntity currencyFinal = currency;
-			//o método assíncrono abaixo pede o currency como variável final
-			new Thread(() -> { // Dividir o cache com todas as instâncias
-			    for (Integer port : instancesPort) {
-			        if (serverPort != port) {
-			        	
-			           // currencyCacheShare.storeCache(nameCache, keyCache, currencyFinal);
-			        	
-			            // o Ideal seria fazer com RestTemplate(abaixo) e fazer nas portas diretas do projeto, sem gateway
-			        	//A não ser que conseguisse fazer URI dinâmico no OpenFeign, mas o método abaixo é muito mais fácil
-			            
-			            RestTemplate restTemplate = new RestTemplate();
-			            String url = "http://localhost:" + port + "/currency/" + nameCache + "/" + keyCache;
-			            restTemplate.postForObject(url, currencyFinal, CurrencyBCResponse.class);
-			        }
-			    }
-			}).start();
+			
+				
 		}
 		
 		
 		currency.setConvertedValue(value * currency.getConversionRate());
-		currency.setEnviroment("Currency running in port: " + serverPort + " - DataSource: " + dataSource);
+		currency.setEnvironment("Currency running in port/instance: " + (hostName.isBlank() ? serverPort : hostName) + " - DataSource: " + dataSource);
 
 		return ResponseEntity.ok(currency);
 		
