@@ -1,5 +1,7 @@
 package br.edu.atitus.product_service.controllers;
 
+import java.net.http.HttpHeaders;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
@@ -51,6 +53,7 @@ public class OpenProductController {
 		String environment = "Product-service running on port/instance: " + (hostName.isBlank() ? serverPort : hostName) ;
 		ProductEntity product = cacheManager.getCache(nameCacheProductId).get(idProduct, ProductEntity.class);
 		CurrencyResponse currency = new CurrencyResponse();
+		try {
 		if (product == null) {
 			product = repository.findById(idProduct).orElseThrow(() -> new Exception("Product not found"));
 			product.setEnvironment(environment + " - Product Source: Local Database");
@@ -58,32 +61,25 @@ public class OpenProductController {
 			product.setEnvironment(environment + " - Product Source: Cache");
 		}
 		
-		if (targetCurrency.equalsIgnoreCase(product.getCurrency()))
-			product.setConvertedPrice(product.getPrice());
-		else {
+
 			try {
-				currency = cacheManager.getCache(nameCacheTargetCurrency).get(targetCurrency, CurrencyResponse.class);
-				
-				if (currency == null) {
+
 					currency = currencyClient.getCurrency(
 								product.getPrice(), 
 								product.getCurrency(), 
 								targetCurrency);
 					String currencyDataSource = currency.getEnvironment().split("DataSource:")[1];
 					product.setEnvironment(product.getEnvironment() + " -  Currency Source: " +  currencyDataSource);
-
-				} else {
-
-					product.setEnvironment(product.getEnvironment() + " -  Currency Source: Cache");
-				}
-	
-				product.setConvertedPrice(currency.getConvertedValue());
+					product.setConvertedPrice(product.getPrice() * currency.getConversionRate());
 				
 				} catch(Exception e) {
 					product.setConvertedPrice(-1);
 				}
 
-			}
+
+		} catch ( Exception e) {
+			return ResponseEntity.noContent().build();
+		}
 		
 	
 		cacheManager.getCache(nameCacheProductId).put(product.getId(), product);
@@ -116,6 +112,6 @@ public class OpenProductController {
 		    }
 		    return ResponseEntity.ok(products);
 		}
-
+	
 
 }

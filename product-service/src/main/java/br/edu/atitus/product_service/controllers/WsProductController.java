@@ -3,6 +3,7 @@ package br.edu.atitus.product_service.controllers;
 import javax.security.sasl.AuthenticationException;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.edu.atitus.product_service.clients.CurrencyResponse;
 import br.edu.atitus.product_service.dtos.ProductDTO;
 import br.edu.atitus.product_service.entities.ProductEntity;
 import br.edu.atitus.product_service.repositories.ProductRepository;
@@ -23,10 +25,12 @@ import br.edu.atitus.product_service.repositories.ProductRepository;
 public class WsProductController {
 	
 	private final ProductRepository repository;
+	private final CacheManager cacheManager;
 
-	public WsProductController(ProductRepository repository) {
+	public WsProductController(ProductRepository repository, CacheManager cacheManager) {
 		super();
 		this.repository = repository;
+		this.cacheManager = cacheManager;
 	}
 	
 	private ProductEntity convertDto2Entity(ProductDTO dto) {
@@ -64,6 +68,12 @@ public class WsProductController {
 		product.setId(idProduct);
 		product.setStock(10);
 		repository.save(product);
+		String nameCacheProductId = "idProduct";
+		String nameCacheTargetCurrency = "targetCurrency";
+		
+		cacheManager.getCache(nameCacheTargetCurrency).evict(product.getCurrency());
+		cacheManager.getCache(nameCacheProductId).evict(product.getId());
+		
 		return ResponseEntity.status(201).body(product);
 	}
 	
@@ -74,9 +84,12 @@ public class WsProductController {
 		
 		if(userType != 0)
 			throw new AuthenticationException("Usuário sem permissão");
+		String nameCacheProductId = "idProduct";
+		String nameCacheTargetCurrency = "targetCurrency";
+		cacheManager.getCache(nameCacheProductId).clear();
 		
-
 		repository.deleteById(idProduct);
+		
 		return ResponseEntity.ok("Excluído");
 	}
 		

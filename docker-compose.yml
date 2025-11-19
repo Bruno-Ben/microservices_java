@@ -86,6 +86,9 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka
+    ports:
+     - "8000-8001:8000"
+
   # -------------------------------
   db-user:
     image: postgres:16
